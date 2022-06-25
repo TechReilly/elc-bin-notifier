@@ -14,7 +14,7 @@ It should look something like this:
 ## Environment Variables
 These should be configured before running the application.
 - `API_URL`: The ELC bin collection URL retrieved using the above instructions.
-- `PUSHOVER_API_KEY`: The API key of your Pushover application.
+- `PUSHOVER_TOKEN`: The API token of your Pushover application.
 - `PUSHOVER_TARGET`: The Pushover target user/group for the day-before notification.
 
 ## Usage
