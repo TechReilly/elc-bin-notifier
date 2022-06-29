@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/golang-module/carbon/v2"
+	log "github.com/sirupsen/logrus"
 )
 
 const srcDateFmt string = "l j F Y"
@@ -22,6 +22,11 @@ type Collection struct {
 }
 
 func main() {
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors: true,
+		FullTimestamp: true,
+	})
+
 	var collections []Collection
 	collections = append(collections, Collection{
 		name:     "General Waste",
@@ -55,14 +60,18 @@ func main() {
 		if c.next.Error != nil {
 			log.Fatal(c.next.Error)
 		}
-		fmt.Printf("Next %s collection: %s\n", c.name, c.next.ToDateString())
+
+		log.WithFields(log.Fields{
+			"name":            c.name,
+			"next collection": c.next.ToDateString(),
+		}).Info("Got next collection")
+
 		if c.next.IsTomorrow() {
 			dueTomorrow = append(dueTomorrow, c.name)
 		}
 	}
 
 	if len(dueTomorrow) > 0 {
-		log.Printf("Dispatching notifications for collections due tomorrow: %v\n", dueTomorrow)
 		notify(dueTomorrow)
 	}
 }
@@ -85,6 +94,9 @@ func sanitiseDateString(rawDate string) string {
 // notify generate a notification for any collections that are scheduled for tomorrow
 func notify(collections []string) error {
 	for _, c := range collections {
+		log.WithFields(log.Fields{
+			"name": c,
+		}).Info("Dispatching notification")
 		err := NotifyPushover(fmt.Sprintf("%s collection scheduled for tomorrow", c))
 		if err != nil {
 			log.Fatal(err)
